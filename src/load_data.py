@@ -25,18 +25,36 @@ def load_tgif2_sample(image_path, mask_path):
 
 def generate_dummy_sample():
     """
-    Generates a fake image and mask so you can test the loader right now.
+    Generates a realistic dummy image with textured noise in the tampered region
+    so forensic and semantic feature extractors can detect it.
     """
     os.makedirs("data/tgif2_sample/images", exist_ok=True)
     os.makedirs("data/tgif2_sample/masks", exist_ok=True)
 
-    # Create a dummy 256x256 RGB image (e.g., blue background with a red square)
-    dummy_image = np.full((256, 256, 3), (200, 200, 200), dtype=np.uint8)
-    cv2.rectangle(dummy_image, (50, 50), (120, 120), (0, 0, 255), -1) # "tampered" region
+    # 1. Create a base smooth background (e.g., subtle gradient or smooth gray)
+    dummy_image = np.full((256, 256, 3), 180, dtype=np.uint8)
+    
+    # Add mild background noise so it's not perfectly flat
+    noise = np.random.normal(0, 5, (256, 256, 3)).astype(np.int32)
+    dummy_image = np.clip(dummy_image.astype(np.int32) + noise, 0, 255).astype(np.uint8)
 
-    # Create a matching binary mask (white square where the edit is, black elsewhere)
+    # 2. Define the tampered region coordinates
+    x1, y1, x2, y2 = 60, 60, 140, 140
+
+    # 3. Create a matching binary mask
     dummy_mask = np.zeros((256, 256), dtype=np.uint8)
-    cv2.rectangle(dummy_mask, (50, 50), (120, 120), 255, -1)
+    dummy_mask[y1:y2, x1:x2] = 255
+
+    # 4. Inject heavy high-frequency noise and color distortion into the tampered region
+    # (Simulating AI inpainting artifacts / tampering traces)
+    tampered_patch = dummy_image[y1:y2, x1:x2].astype(np.float32)
+    tampered_patch[:, :, 0] = np.clip(tampered_patch[:, :, 0] + 40, 0, 255) # boost red channel
+    
+    # Add high-frequency Gaussian noise inside the tampered patch
+    hf_noise = np.random.normal(0, 25, tampered_patch.shape)
+    tampered_patch = np.clip(tampered_patch + hf_noise, 0, 255).astype(np.uint8)
+    
+    dummy_image[y1:y2, x1:x2] = tampered_patch
 
     # Save them
     img_path = "data/tgif2_sample/images/sample_01.jpg"
@@ -44,14 +62,13 @@ def generate_dummy_sample():
 
     cv2.imwrite(img_path, cv2.cvtColor(dummy_image, cv2.COLOR_RGB2BGR))
     cv2.imwrite(mask_path, dummy_mask)
-    print(f"[Info] Generated dummy test files at {img_path} and {mask_path}")
+    print(f"[Info] Generated textured dummy test files at {img_path} and {mask_path}")
 
 if __name__ == "__main__":
-    print("Step 2 Test: Generating dummy sample...")
+    print("Regenerating textured dummy sample...")
     generate_dummy_sample()
 
     sample_img_path = "data/tgif2_sample/images/sample_01.jpg"
     sample_mask_path = "data/tgif2_sample/masks/sample_01_mask.png"
     
-    print("\nTesting TGIF2 loader utility...")
     load_tgif2_sample(sample_img_path, sample_mask_path)
