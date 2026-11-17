@@ -11,7 +11,7 @@ def evaluate_fitness(individual, forensic_scores, semantic_scores, segments, alp
     N = len(individual)
     
     if len(selected_indices) == 0:
-        return (-10.0,), # Heavy penalty for empty selection
+        return (-10.0,) # Fixed: flat tuple of numbers for DEAP fitness
 
     # 1. Forensic alignment score
     f_sum = sum(forensic_scores.get(rid, 0.0) for rid in selected_indices)
@@ -23,9 +23,8 @@ def evaluate_fitness(individual, forensic_scores, semantic_scores, segments, alp
     coherence = 0.0
     for i in range(len(selected_indices)):
         for j in range(i + 1, len(selected_indices)):
-            # If two selected regions are adjacent or close, reward coherence
-            coherence += 1.0 # placeholder for boundary adjacency
-    
+            coherence += 1.0
+            
     # 4. Parsimony penalty (penalize selecting too many regions)
     parsimony = len(selected_indices) / float(N)
     
@@ -38,7 +37,6 @@ def run_binary_genetic_algorithm(forensic_scores, semantic_scores, segments, n_r
     """
     Sets up and runs the DEAP Binary Genetic Algorithm.
     """
-    # Clear DEAP classes if already declared
     if "FitnessMax" in creator.__dict__:
         del creator.FitnessMax
     if "Individual" in creator.__dict__:
@@ -48,24 +46,17 @@ def run_binary_genetic_algorithm(forensic_scores, semantic_scores, segments, n_r
     creator.create("Individual", list, fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
-    
-    # Attribute generator: binary 0 or 1
     toolbox.register("attr_bool", random.randint, 0, 1)
-    
-    # Structure initializers
     toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_bool, n=n_regions)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual, n=pop_size)
 
-    # Register operators
     toolbox.register("evaluate", evaluate_fitness, forensic_scores=forensic_scores, semantic_scores=semantic_scores, segments=segments)
     toolbox.register("mate", tools.cxTwoPoint)
     toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
-    # Initialize population
     pop = toolbox.population(n=pop_size)
     
-    # Run simple genetic algorithm
     print(f"[Info] Running BGA optimization for {n_gens} generations...")
     hof = tools.HallOfFame(1)
     stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -88,7 +79,7 @@ if __name__ == "__main__":
     image, _ = load_tgif2_sample(img_path, mask_path)
     
     if image is not None:
-        segments, region_ids = extract_superpixel_candidates(image, n_segments=21)
+        segments, region_ids = extract_superpixel_candidates(image, n_segments=12)
         f_scores, s_scores = compute_dual_signal_features(image, segments, region_ids)
         
         print("\nTesting Optimizer Execution...")
