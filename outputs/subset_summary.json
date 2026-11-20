@@ -1,0 +1,33 @@
+{
+  "stage": "pilot",
+  "seed": 42,
+  "total_discovered_pairs": 10,
+  "selected_subset_size": 5,
+  "unique_source_groups": 5,
+  "cross_split_group_leakage": false,
+  "manipulation_counts": {
+    "inpaint": 2,
+    "localized_edit": 2,
+    "semantic_region_edit": 1
+  },
+  "size_bucket_counts": {
+    "large": 1,
+    "medium": 1,
+    "small": 3
+  },
+  "location_bucket_counts": {
+    "border": 2,
+    "center": 2,
+    "off_center": 1
+  },
+  "split_counts": {
+    "test": 1,
+    "train": 3,
+    "val": 1
+  },
+  "selection_criteria": [
+    "Stratified sampling across manipulation types, mask area size buckets, and spatial location buckets instead of pure random sampling.",
+    "Leak-free train/val/test split grouped by source_group_id so derivatives of the same original image never cross splits.",
+    "Progressive scaling from pilot subset to expanded subset for consistency verification."
+  ]
+}
