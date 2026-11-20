@@ -1,29 +1,30 @@
 {
-  "stage": "pilot",
+  "stage": "expanded",
   "seed": 42,
   "total_discovered_pairs": 10,
-  "selected_subset_size": 5,
-  "unique_source_groups": 5,
+  "selected_subset_size": 10,
+  "unique_source_groups": 10,
   "cross_split_group_leakage": false,
   "manipulation_counts": {
-    "inpaint": 2,
-    "localized_edit": 2,
-    "semantic_region_edit": 1
+    "inpaint": 3,
+    "localized_edit": 3,
+    "semantic_region_edit": 3,
+    "textured_inpaint": 1
   },
   "size_bucket_counts": {
     "large": 1,
-    "medium": 1,
-    "small": 3
+    "medium": 5,
+    "small": 4
   },
   "location_bucket_counts": {
     "border": 2,
-    "center": 2,
-    "off_center": 1
+    "center": 4,
+    "off_center": 4
   },
   "split_counts": {
-    "test": 1,
-    "train": 3,
-    "val": 1
+    "test": 2,
+    "train": 6,
+    "val": 2
   },
   "selection_criteria": [
     "Stratified sampling across manipulation types, mask area size buckets, and spatial location buckets instead of pure random sampling.",
